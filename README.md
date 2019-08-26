@@ -22,8 +22,8 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 
 - Operating system: Windows 10
 - GPU: Nvidia GTX 1080 or higher (recommended)
-- Software: Unreal Engine 4.18 and Visual Studio - 2017 (see [upgrade instructions](https://github.com/Microsoft/AirSim/blob/master/docs/unreal_upgrade.md))
-- AirSim: 1.2
+- Software: [Unreal Engine 4.18](https://www.unrealengine.com) and [Visual Studio 2017](https://my.visualstudio.com/Downloads?q=Visual%20Studio%202017) (see [upgrade instructions](https://github.com/Microsoft/AirSim/blob/master/docs/unreal_upgrade.md))
+- Simulator: [AirSim 1.2.0](https://github.com/microsoft/AirSim/releases/tag/v1.2.0)
 
 ## 2. Build the AirSim Project
 
