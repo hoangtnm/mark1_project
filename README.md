@@ -23,7 +23,7 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 - Operating system: Windows 10
 - GPU: Nvidia GTX 1080 or higher (recommended)
 - Software: [Unreal Engine 4.18](https://www.unrealengine.com) and [Visual Studio 2017](https://my.visualstudio.com/Downloads?q=Visual%20Studio%202017) (see [upgrade instructions](https://github.com/Microsoft/AirSim/blob/master/docs/unreal_upgrade.md))
-- Simulator: [AirSim 1.2.0](https://github.com/microsoft/AirSim/releases/tag/v1.2.0)
+- Simulator: [AirSim 1.2](https://github.com/microsoft/AirSim/releases/tag/v1.2.0)
 
 ## 2. Build the AirSim Project
 
@@ -31,7 +31,7 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 
 ### 2.2. Build AirSim
 
-1. You will need Visual Studio 2017 (**make sure** to install `VC++` and `Windows SDK 8.x`).
+1. You will need Visual Studio 2017 (**make sure** to install `VC++` and `Windows 8.1 SDK`).
 2. Start `x64 Native Tools Command Prompt for VS 2017`. Create a folder for the repo and run `git clone https://github.com/Microsoft/AirSim.git`.
 3. Run `build.cmd` from the command line. This will create ready to use plugin bits in the `Unreal\Plugins` folder that can be dropped into any Unreal project.
 
@@ -96,6 +96,35 @@ Finally, you will need an `Unreal project` that `hosts` the `environment` for yo
     Figure 4. Generate Visual Studio project files
 </p>
 
+10. Reopen `ProjectName.sln` in Visual Studio, and make sure `DebugGame Editor` and `Win64` build configuration is the active build configuration.
+
+<p align="center">
+	<img src="images/vsbuild_config.png"><br>
+	Figure 5. Build configurations
+</p>
+
+11. Press `F5` to `debug`. This will start the Unreal Editor. The Unreal Editor allows you to edit the environment, assets and other game related settings.
+
+12. First thing, `load` a `map` to set your environment. The maps are under `Content\RaceCourse\Maps`. To choose one of the maps double-click on it.
+
+13. In `Window/World Settings` as shown below, set the `GameMode Override` to `AirSimGameMode`:
+
+<p align="center">
+	<img src="images/sim_game_mode.png"><br>
+	Figure 6. AirSimMode
+</p>
+
+14. Next, `if` you want to `change` the location of `PlayerStart` object in your environment(`PlayerStart` object already exist) you can find and fix it in the `World Outliner`. This is where AirSim plugin will create and place the vehicle. If its too high up then vehicle will fall down as soon as you press play giving potentially random behavior.
+
+<p align="center">
+	<img src="images/lm_player_start_pos.png"><br>
+	Figure 7. PlayerStart position
+</p>
+
+15. Be sure to `Save` these edits. Hit the Play button in the Unreal Editor. See [how to use AirSim](https://github.com/Microsoft/AirSim/#how-to-use-it).
+
+Ready... Set... GO!!! You are now running AirSim in your FSD Unreal environment.
+
 ## 3. How to Use It
 
 ### 3.1. Choosing the Mode: Car, Multirotor or ComputerVision
@@ -110,7 +139,7 @@ If you have a steering wheel (Logitech G920) as shown below, you can manually co
 
 <p align="center">
     <img src="images/steering_wheel.gif"><br>
-    Figure 4. Manual drive
+    Figure 8. Manual drive
 </p>
 
 ### 3.3. Steering the car using imitation learning
@@ -126,7 +155,9 @@ There are two ways you can generate training data from AirSim for deep learning.
 
 <p align="center">
     <img src="images/recording_button_small.png"><br>
-    Figure n. Gathering training data
+    Figure 9. Gathering training data
 </p>
 
 ## References
+
+[Build AirSim with FST Driverless Environment on Windows](https://github.com/Microsoft/AirSim/wiki/build_FSTDriverless_windows#install-unreal-engine)
