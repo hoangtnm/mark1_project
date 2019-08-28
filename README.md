@@ -37,11 +37,11 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 
 ### 2.3. Creating and Setting Up Unreal Environment
 
-Finally, you will need an `Unreal project` that `hosts` the `environment` for your vehicles. Follow the list below to create an environment that simulates the FSD competitions.
+Finally, you will need an `Unreal Project` that `hosts` the `environment` for your vehicles. Follow the list below to create an environment that simulates the FSD competitions.
 
 1. Make sure `AirSim` is built and `Unreal 4.18` is installed as described above.
 
-2. Open `UE editor` and choose `New Project`. Choose `Blank` with `no starter content`. Select your project's location, define it's name (`ProjectName` for example) and press `create project`.
+2. Open `Unreal Editor` and choose `New Project`. Choose `Blank` with `no starter content`. Select your project's location, define it's name (`ProjectName` for example) and press `create project`.
 
 <p align="center">
     <img src="images/unreal_new_project.png"><br>
@@ -54,7 +54,7 @@ Finally, you will need an `Unreal project` that `hosts` the `environment` for yo
 
 5. Go to your folder for `AirSim` repo and copy `Unreal\Plugins` folder into your `ProjectName` folder. This way now your own Unreal project has AirSim plugin.
 
-6. Download the environment assets of [FSD racecourse](https://drive.google.com/file/d/1FC1T8rZ5hVEDXwlECnPxmPitRCLlxGma/view?usp=sharing). Extract the zip into `ProjectName\Content` (see folders tree in the end of this doc).
+6. Download the environment assets of [FSD racecourse](https://drive.google.com/file/d/1FC1T8rZ5hVEDXwlECnPxmPitRCLlxGma/view?usp=sharing). Extract the zip into `ProjectName\Content` (see folders tree at the end of this doc).
 
 7. Download the formula Technion [car assets](https://drive.google.com/file/d/1dV4deyLlmMwBwA2ljxbardbGdXHtKKSo/view?usp=sharing). Extract the zip into `ProjectName\Plugins\AirSim\Content\VehicleAdv\SUV` and select `replace` when asked for `SuvCarPawn.uasset` (the original file will be saved into a backup folder).
 
@@ -89,7 +89,7 @@ Finally, you will need an `Unreal project` that `hosts` the `environment` for yo
 }
 ```
 
-9. Right click the `ProjectName.uproject` in Windows Explorer and select `Generate Visual Studio project files`. This step detects all plugins and source files in your Unreal project and generates .sln file for Visual Studio.
+9. Right click the `ProjectName.uproject` in Windows Explorer and select `Generate Visual Studio project files`. This step detects all plugins and source files in your Unreal project and generates `.sln` file for Visual Studio.
 
 <p align="center">
     <img src="images/regen_sln.png"><br>
@@ -111,7 +111,7 @@ Finally, you will need an `Unreal project` that `hosts` the `environment` for yo
 
 <p align="center">
 	<img src="images/sim_game_mode.png"><br>
-	Figure 6. AirSimMode
+	Figure 6. AirSimGameMode
 </p>
 
 14. Next, `if` you want to `change` the location of `PlayerStart` object in your environment(`PlayerStart` object already exist) you can find and fix it in the `World Outliner`. This is where AirSim plugin will create and place the vehicle. If its too high up then vehicle will fall down as soon as you press play giving potentially random behavior.
@@ -157,6 +157,51 @@ There are two ways you can generate training data from AirSim for deep learning.
     <img src="images/recording_button_small.png"><br>
     Figure 9. Gathering training data
 </p>
+
+## 4. Imitation Learning
+
+This section is about training a model to steer our Formula car using imitation learning.
+
+Imitation learning includes the usage of labeled data as input to a training algorithm with the purpose of having the algorithm imitate the actions of people who recorded the data.
+
+<p align="center">
+	<img src="images/imitation_diagram.png"><br>
+	Figure 10. Imiation Learning diagram
+</p>
+
+### 4.1. Preparing training dataset
+
+`cook_data.py` is responsible for preparing `.h5` dataset files for the training procedure.
+
+The code rely on having two adjacent folders:
+`raw_data` - contains folders of recorded data by airsim's recording method.
+`cooked_data` - empty folder to store the .h5 files.
+
+The flag "COOK_ALL_DATA" gives the option to choose all subfolders, or exclude some of them.
+
+### 4.2. Training
+
+`train_model.py` is responsible to train a model using the .h5 dataset files.
+The code rely on having two adjacent folders:
+
+`cooked_data` - contains the .h5 dataset files.
+`models` - empty folder to store the generated models.
+
+The file will preprocess the data, add augmentations and create a neural network model that predicts the next steering angle.
+
+### 4.3. Driving using a trained model
+
+`drive_model.py` connects to the simulation in order to upload a trained model and drive using it.
+
+By using the predicted steering value, the code calculates related control parameters and maintain driving with steady velocities.
+
+## 5. Training Tips
+
+I recommend on using augmentation and recording techniques:
+
+- [CycleLight](https://github.com/FSTDriverless/AirSim/blob/master/docs/graphic_features.md) - Animation of a day light cycle in a changeable, potentially very short period of time.
+- Shifted images - Altering the camera’s position to the right or the left of the car, so that it can record images in extreme conditions. To simulate driving back to the center from those extreme situations, post-process the recorded angle of the steering accordingly (manually).
+
 
 ## References
 
