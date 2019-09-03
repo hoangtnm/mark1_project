@@ -1,1 +1,2 @@
 msgpack-rpc-python
+tensorflow-gpu
