@@ -1,2 +1,5 @@
+numpy
+airsim
+pygame
 msgpack-rpc-python
 tensorflow-gpu
