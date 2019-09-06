@@ -108,7 +108,7 @@ def get_button_command(button_data, controller):
     total_buttons = controller.get_numbuttons()
 
     for num in range(total_buttons):
-        if button_data[num] == True:
+        if button_data[num]:
             is_command = True
             button_num = num
             break
