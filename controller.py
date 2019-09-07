@@ -15,19 +15,19 @@ class PS4Controller:
 
     def __init__(self):
         """Initialize the joystick components."""
-        
+
         pygame.init()
         pygame.joystick.init()
         self.controller = pygame.joystick.Joystick(0)
         self.controller.init()
         self.axis_data = False
         self.button_data = False
-        self.hat_data = False       
-        
+        self.hat_data = False
+
         # initialize the variable used to indicate if
         # the thread should be stopped
         self.stopped = False
-    
+
     # Threading-method
     def start(self):
         # Start the thread to read signals from the controller
@@ -35,17 +35,18 @@ class PS4Controller:
         t.daemon = True
         t.start()
         return self
-    
+
     def update(self):
         # keep looping infinitely until the thread is stopped
         while True:
             # if the thread indicator variable is set, stop the thread
             if self.stopped:
                 return
-            
+
             # otherwise, read the next signal from the controller
             if not self.axis_data:
-                self.axis_data = {0:0.0,1:0.0,2:0.0,3:-1.0,4:-1.0,5:0.0}    # default
+                self.axis_data = {0: 0.0, 1: 0.0, 2: 0.0,
+                                  3: -1.0, 4: -1.0, 5: 0.0}    # default
 
             if not self.button_data:
                 self.button_data = {}
@@ -66,11 +67,11 @@ class PS4Controller:
                     self.button_data[event.button] = False
                 elif event.type == pygame.JOYHATMOTION:
                     self.hat_data[event.hat] = event.value
-                    
+
     def read(self):
         # return the signal most recently read
         return self.button_data, self.axis_data, self.hat_data
-    
+
     def stop(self):
         # indicate that the thread should be stopped
         self.stopped = True
@@ -78,7 +79,7 @@ class PS4Controller:
 
 def get_button_command(button_data, controller):
     """Get button number from a ps4 controller.
-    
+
     Args:
         button_data: an array of length `controller.get_numbuttons()`
         controller: pygame.joystick.Joystick()
