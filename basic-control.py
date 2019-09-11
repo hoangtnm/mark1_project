@@ -1,5 +1,9 @@
+import setup_path
+import cv2
 import airsim
+import time
 import numpy as np
+from PIL import Image
 from controller import PS4Controller
 
 
@@ -39,6 +43,29 @@ if __name__ == '__main__':
         car_controls.throttle = speed
         car_controls.steering = theta
         client.setCarControls(car_controls)
+
+        car_state = client.getCarState()
+        print(f'Speed {car_state.speed}, Gear {car_state.gear}')
+
+        # Getting images
+        responses = client.simGetImages([
+            # png format
+            airsim.ImageRequest("0", airsim.ImageType.Scene),
+            # uncompressed RGB array bytes
+            airsim.ImageRequest("1", airsim.ImageType.Scene, False, False),
+            # floating point uncompressed image
+            airsim.ImageRequest("1", airsim.ImageType.DepthPlanner, True)])
+
+        response = responses[1]
+        # get numpy array
+        img1d = np.fromstring(response.image_data_uint8, dtype=np.uint8)
+        # reshape array to 3 channel image array H X W X 3
+        img_rgb = img1d.reshape(response.height, response.width, 3)
+        
+        cv2.imshow('image', img_rgb)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            cv2.destroyAllWindows()
+            break
 
     # restore to original state
     client.reset()
