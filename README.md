@@ -202,6 +202,16 @@ I recommend on using augmentation and recording techniques:
 - [CycleLight](https://github.com/FSTDriverless/AirSim/blob/master/docs/graphic_features.md) - Animation of a day light cycle in a changeable, potentially very short period of time.
 - Shifted images - Altering the camera’s position to the right or the left of the car, so that it can record images in extreme conditions. To simulate driving back to the center from those extreme situations, post-process the recorded angle of the steering accordingly (manually).
 
+## Citing
+
+```
+@article{zadok2019explorations,
+  title={Explorations and Lessons Learned in Building an Autonomous Formula SAE Car from Simulations},
+  author={Zadok, Dean and Hirshberg, Tom and Biran, Amir and Radinsky, Kira and Kapoor, Ashish},
+  journal={arXiv preprint arXiv:1905.05940},
+  year={2019}
+}
+```
 
 ## References
 
