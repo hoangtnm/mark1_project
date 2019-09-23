@@ -4,7 +4,6 @@ import re
 import csv
 import h5py
 import copy
-import errno
 import random
 import numpy as np
 import pandas as pd
@@ -17,54 +16,50 @@ from collections import OrderedDict
 MAX_SPEED = 70.0
 
 
-def checkAndCreateDir(full_path):
-    """Checks if a given path exists and if not, creates the needed directories.
-    
+def create_dir(full_path):
+    """Checks if a given path exists and if not, creates directories if needed.
+
     Args:
         full_path: path to be checked
     """
     if not os.path.exists(os.path.dirname(full_path)):
-        try:
-            os.makedirs(os.path.dirname(full_path))
-        except OSError as exc:  # Guard against race condition
-            if exc.errno != errno.EEXIST:
-                raise
+        os.makedirs(os.path.dirname(full_path))
 
 
-def readImagesFromPath(image_names):
-    """ Takes in a path and a list of image file names to be loaded and returns a list of all loaded images after resize.
-    
+def read_images_from_path(image_names):
+    """Returns a list of all loaded images after resize.
+
     Args:
         image_names: list of image names
     Returns:
-        List of all loaded and resized images
+        List of RGB images
     """
-    returnValue = []
+    image_list = []
+
     for image_name in image_names:
-        im = Image.open(image_name)
-        imArr = np.asarray(im)
+        image = Image.open(image_name)
+        image_np = np.asarray(image)
 
         # Remove alpha channel if exists
-        if len(imArr.shape) == 3 and imArr.shape[2] == 4:
-            if (np.all(imArr[:, :, 3] == imArr[0, 0, 3])):
-                imArr = imArr[:, :, 0:3]
-        if len(imArr.shape) != 3 or imArr.shape[2] != 3:
-            print('Error: Image', image_name, 'is not RGB.')
+        if len(image_np.shape) == 3 and image_np.shape[2] == 4:
+            if (np.all(image_np[:, :, 3] == image_np[0, 0, 3])):
+                image_np = image_np[:, :, 0:3]
+        if len(image_np.shape) != 3 or image_np.shape[2] != 3:
+            print(f'Error: Image {image_name} is not RGB.')
             sys.exit()
 
-        returnIm = np.asarray(imArr)
+        image_np = np.asarray(image_np)
+        image_list.append(image_np)
 
-        returnValue.append(returnIm)
-    return returnValue
+    return image_list
 
 
-def splitTrainValidationAndTestData(all_data_mappings, split_ratio=(0.7, 0.2, 0.1)):
-    """Simple function to create train, validation and test splits on the data.
-    
+def split_train_val_test_data(all_data_mappings, split_ratio=(0.7, 0.2, 0.1)):
+    """Returns train, validation and test data.
+
     Args:
         all_data_mappings: mappings from the entire dataset
         split_ratio: (train, validation, test) split ratio
-
     Returns:
         train_data_mappings: mappings for training data
         validation_data_mappings: mappings for validation data
@@ -76,18 +71,20 @@ def splitTrainValidationAndTestData(all_data_mappings, split_ratio=(0.7, 0.2, 0.
         sys.exit()
 
     train_split = int(len(all_data_mappings) * split_ratio[0])
-    val_split = train_split + int(len(all_data_mappings) * split_ratio[1])
-
     train_data_mappings = all_data_mappings[0:train_split]
+
+    val_split = train_split + int(len(all_data_mappings) * split_ratio[1])
     validation_data_mappings = all_data_mappings[train_split:val_split]
+
     test_data_mappings = all_data_mappings[val_split:]
 
     return [train_data_mappings, validation_data_mappings, test_data_mappings]
 
 
 def generateDataMapAirSim(folders):
-    """ Data map generator for simulator(AirSim) data. Reads the driving_log csv file and returns a list of 'center camera image name - label(s)' tuples
-    
+    """Data map generator for simulator(AirSim) data.
+    Reads the driving_log csv file and returns a list of 'center camera image name - label(s)' tuples
+
     Args:
         folders: list of folders to collect data from
 
@@ -99,7 +96,7 @@ def generateDataMapAirSim(folders):
 
     all_mappings = {}
     for folder in folders:
-        print('Reading data from {0}...'.format(folder))
+        print(f'Reading data from {folder}...')
         current_df = pd.read_csv(os.path.join(
             folder, 'airsim_rec.txt'), sep='\t')
 
@@ -172,10 +169,10 @@ def saveH5pyData(data_mappings, target_file_path, chunk_size):
     gen = generatorForH5py(data_mappings, chunk_size)
 
     image_names_chunk, labels_chunk, previous_state_chunk = next(gen)
-    images_chunk = np.asarray(readImagesFromPath(image_names_chunk))
+    images_chunk = np.asarray(read_images_from_path(image_names_chunk))
     row_count = images_chunk.shape[0]
 
-    checkAndCreateDir(target_file_path)
+    create_dir(target_file_path)
     with h5py.File(target_file_path, 'w') as f:
 
         # Initialize a resizable dataset to hold the output
@@ -197,7 +194,7 @@ def saveH5pyData(data_mappings, target_file_path, chunk_size):
         dset_previous_state[:] = previous_state_chunk
 
         for image_names_chunk, label_chunk, previous_state_chunk in gen:
-            image_chunk = np.asarray(readImagesFromPath(image_names_chunk))
+            image_chunk = np.asarray(read_images_from_path(image_names_chunk))
 
             # Resize the dataset to accommodate the next chunk of rows
             dset_images.resize(row_count + image_chunk.shape[0], axis=0)
@@ -215,7 +212,7 @@ def saveH5pyData(data_mappings, target_file_path, chunk_size):
 
 def cook(folders, output_directory, train_eval_test_split, chunk_size):
     """ Primary function for data pre-processing. Reads and saves all data as h5 files.
-    
+
     Args:
         folders: a list of all data folders
         output_directory: location for saving h5 files
@@ -230,7 +227,7 @@ def cook(folders, output_directory, train_eval_test_split, chunk_size):
     else:
         all_data_mappings = generateDataMapAirSim(folders)
 
-        split_mappings = splitTrainValidationAndTestData(
+        split_mappings = split_train_val_test_data(
             all_data_mappings, split_ratio=train_eval_test_split)
 
         for i in range(0, len(split_mappings)-1, 1):
