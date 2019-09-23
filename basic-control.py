@@ -54,7 +54,8 @@ if __name__ == '__main__':
             # uncompressed RGB array bytes
             airsim.ImageRequest("1", airsim.ImageType.Scene, False, False),
             # floating point uncompressed image
-            airsim.ImageRequest("1", airsim.ImageType.DepthPlanner, True)])
+            airsim.ImageRequest("1", airsim.ImageType.DepthPlanner, True)
+        ])
 
         response = responses[1]
         # get numpy array
