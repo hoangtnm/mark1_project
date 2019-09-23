@@ -5,10 +5,12 @@ import numpy as np
 import pandas as pd
 from PIL import Image
 from PIL import ImageDraw
-from matplotlib import use
-use("TkAgg")
-import Cooking
 import matplotlib.pyplot as plt
+from matplotlib import use
+import Cooking
+
+
+use("TkAgg")
 
 # chunk size for training batches
 chunk_size = 32
