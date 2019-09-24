@@ -36,6 +36,7 @@ from Generator import DriveDataGenerator
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+MAX_SPEED = 8
 
 
 # Hyper-parameters
