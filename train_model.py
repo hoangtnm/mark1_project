@@ -149,7 +149,7 @@ class AirSimDataset(Dataset):
 
     def __len__(self):
         # reads images from index 1 to n-1
-        return len(self.dataframe.shape[0] - 2)
+        return self.dataframe.shape[0] - 2
 
     def __getitem__(self, idx):
         if torch.is_tensor(idx):
@@ -158,15 +158,16 @@ class AirSimDataset(Dataset):
         data = self.dataframe.iloc[idx + 1]
         image = Image.open(os.path.join(
             self.data_dir, 'images', data['ImageFile']))
-        image_np = np.asarray(image)
+        image_rgb = image.convert('RGB')
+        image_np = np.asarray(image_rgb)
 
         # Normalize steering: between 0 and 1
         norm_steering = [
-            (float(self.dataframe.iloc[idx-1][['Steering']]) + 1) / 2.0]
-        norm_throttle = [float(self.dataframe.iloc[idx-1][['Throttle']])]
+            (float(self.dataframe.iloc[idx][['Steering']]) + 1) / 2.0]
+        norm_throttle = [float(self.dataframe.iloc[idx][['Throttle']])]
         # Normalize speed: between 0 and 1
         norm_speed = [
-            float(self.dataframe.iloc[idx-1][['Speed']]) / MAX_SPEED]
+            float(self.dataframe.iloc[idx][['Speed']]) / MAX_SPEED]
 
         previous_state = norm_steering + norm_throttle + norm_speed   # Append lists
 
@@ -174,7 +175,7 @@ class AirSimDataset(Dataset):
         norm_steering0 = (
             float(self.dataframe.iloc[idx][['Steering']]) + 1) / 2.0
         norm_steering1 = (
-            float(self.dataframe.iloc[idx+1][['Steering']]) + 1) / 2.0
+            float(self.dataframe.iloc[idx+2][['Steering']]) + 1) / 2.0
 
         temp_sum_steering = norm_steering[0] + \
             norm_steering0 + norm_steering1
@@ -185,7 +186,7 @@ class AirSimDataset(Dataset):
         if self.transforms:
             image_np = self.transforms(image_np)
 
-        return image_np, temp_sum_steering
+        return image_np, torch.tensor(temp_sum_steering, dtype=torch.float32)
 
 
 class NeuralNet(nn.Module):
@@ -250,10 +251,11 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            running_corrects = 0
+            best_loss = 0.9
 
             # Iterate over data.
-            for inputs, labels in dataloaders[phase]:
+            for i, data in enumerate(dataloaders[phase]):
+                inputs, labels = data
                 inputs = inputs.to(device)
                 labels = labels.to(device)
 
@@ -263,9 +265,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 # forward
                 # track history if only in train
                 with torch.set_grad_enabled(phase == 'train'):
-                    outputs = model(inputs)
-                    _, preds = torch.max(outputs, 1)
-                    loss = criterion(outputs, labels)
+                    steering = model(inputs)
+                    loss = criterion(steering, labels)
 
                     # backward + optimize only if in training phase
                     if phase == 'train':
@@ -274,25 +275,23 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
-                running_corrects += torch.sum(preds == labels.data)
+                # running_corrects += torch.sum(preds == labels.data)
             if phase == 'train':
                 scheduler.step()
 
-            epoch_loss = running_loss / dataset_sizes[phase]
-            epoch_acc = running_corrects.double() / dataset_sizes[phase]
+            epoch_loss = running_loss / (inputs.size(0) * (i+1))
 
-            print(f'{phase} Loss: {epoch_loss:.4f} Acc: {epoch_acc:.4f}')
+            print(f'{phase} Loss: {epoch_loss:.4f}')
 
             # deep copy the model
-            if phase == 'val' and epoch_acc > best_acc:
-                best_acc = epoch_acc
+            if phase == 'val' and epoch_loss < best_loss:
+                best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
                 torch.save(best_model_wts, output_dir)
 
     time_elapsed = time.time() - since
     print(
         f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
-    print(f'Best val Acc: {best_acc:4f}')
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -323,14 +322,15 @@ if __name__ == "__main__":
     }
 
     # datasets
-    trainset = AirSimDataset(os.path.join('raw_data', '2019-09-23-16-23-27'))
+    trainset = AirSimDataset(os.path.join(
+        'raw_data', '2019-09-23-16-23-27'), transforms=data_transforms['train'])
 
     # dataloaders
     dataloader = {
         'train': torch.utils.data.DataLoader(trainset, batch_size=32,
                                              shuffle=True, num_workers=4),
         'val': torch.utils.data.DataLoader(trainset, batch_size=32,
-                                           shuffle=True, num_workers=4)
+                                           shuffle=False, num_workers=4)
     }
 
     # initializes a neural network for training
