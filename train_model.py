@@ -1,8 +1,5 @@
 import os
 import time
-import json
-import h5py
-import math
 import copy
 import torch
 import torchvision
@@ -232,7 +229,8 @@ class NeuralNet(nn.Module):
         return num_features
 
 
-def train_model(model, dataloaders, criterion, optimizer, device, output_dir, scheduler=None, skip_val=False, num_epochs=25):
+def train_model(model, dataloaders, criterion, optimizer, device,
+                output_dir, writer=None, scheduler=None, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -246,8 +244,6 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
         for phase in ['train', 'val']:
             if phase == 'train':
                 model.train()   # Set model to training mode
-            elif skip_val:      # Skip validation
-                break
             else:
                 model.eval()    # Set model to evaluate mode
 
@@ -275,12 +271,18 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
                         optimizer.step()
 
                 # statistics
-                running_loss += loss.item() * inputs.size(0)
+                batch_loss = loss.item()
+                running_loss += batch_loss * inputs.size(0)
+                if phase == 'train':
+                    writer.add_scalar('training_loss', batch_loss,
+                                      epoch * len(dataloaders['train']) + i)
 
             if phase == 'train' and (scheduler is not None):
                 scheduler.step()
 
-            epoch_loss = running_loss / (inputs.size(0) * (i+1))
+            # epoch_loss = running_loss / total_examples
+            epoch_loss = running_loss / \
+                (inputs.size(0) * len(dataloaders['train']))
 
             print(f'{phase} Loss: {epoch_loss:.4f}')
 
@@ -301,6 +303,9 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
 
 
 if __name__ == "__main__":
+    # TensorBoard setup
+    writer = SummaryWriter('logs/mark1_experiment')
+
     # check if CUDA is available
     train_on_gpu = torch.cuda.is_available()
     device = torch.device('cuda:0' if train_on_gpu else 'cpu')
@@ -337,6 +342,9 @@ if __name__ == "__main__":
 
     # initializes a neural network for training
     model = NeuralNet()
+    dataiter = iter(dataloaders['train'])
+    images, labels = dataiter.next()
+    writer.add_graph(model, images)
     model.to(device)
     print(model)
 
@@ -345,8 +353,8 @@ if __name__ == "__main__":
     # optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
-    exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-    model = train_model(model, dataloaders, criterion, optimizer,
-                        device, MODEL_OUTPUT_DIR, exp_lr_scheduler,
-                        skip_val=True, num_epochs=NUM_EPOCHS)
+    model = train_model(model, dataloaders, criterion, optimizer, device,
+                        MODEL_OUTPUT_DIR, writer, num_epochs=NUM_EPOCHS)
+    writer.close()
