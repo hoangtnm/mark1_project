@@ -258,6 +258,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 inputs, labels = data
                 inputs = inputs.to(device)
                 labels = labels.to(device)
+                labels = labels.view(-1, 1)
 
                 # zero the parameter gradients
                 optimizer.zero_grad()
@@ -275,9 +276,9 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
 
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
-                # running_corrects += torch.sum(preds == labels.data)
-            if phase == 'train':
-                scheduler.step()
+
+            # if phase == 'train':
+            #     scheduler.step()
 
             epoch_loss = running_loss / (inputs.size(0) * (i+1))
 
@@ -333,12 +334,13 @@ if __name__ == "__main__":
     }
 
     # initializes a neural network for training
-    net = NeuralNet()
-    print(net)
+    model = NeuralNet()
+    model.to(device)
+    print(model)
 
     criterion = nn.MSELoss()
-    # optimizer = optim.Adam(net.parameters(), lr=1e-3)
-    optimizer = optim.SGD(net.parameters(), lr=1e-3, momentum=0.9)
+    optimizer = optim.Adam(net.parameters(), lr=1e-3)
+    # optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
