@@ -323,7 +323,7 @@ if __name__ == "__main__":
 
     # datasets
     trainset = AirSimDataset(os.path.join(
-        'raw_data', '2019-09-23-16-23-27'), transforms=data_transforms['train'])
+        'raw_data', '2019_09_24'), transforms=data_transforms['train'])
 
     # dataloaders
     dataloaders = {
