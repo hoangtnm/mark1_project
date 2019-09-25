@@ -165,12 +165,12 @@ class AirSimDataset(Dataset):
         # Normalize steering: between 0 and 1
         norm_steering = [
             (float(self.dataframe.iloc[idx][['Steering']]) + 1) / 2.0]
-        norm_throttle = [float(self.dataframe.iloc[idx][['Throttle']])]
-        # Normalize speed: between 0 and 1
-        norm_speed = [
-            float(self.dataframe.iloc[idx][['Speed']]) / MAX_SPEED]
+        # norm_throttle = [float(self.dataframe.iloc[idx][['Throttle']])]
+        # # Normalize speed: between 0 and 1
+        # norm_speed = [
+        #     float(self.dataframe.iloc[idx][['Speed']]) / MAX_SPEED]
 
-        previous_state = norm_steering + norm_throttle + norm_speed   # Append lists
+        # previous_state = norm_steering + norm_throttle + norm_speed   # Append lists
 
         # compute average steering over 3 consecutive recorded images, this will serve as the label
         norm_steering0 = (
@@ -181,8 +181,6 @@ class AirSimDataset(Dataset):
         temp_sum_steering = norm_steering[0] + \
             norm_steering0 + norm_steering1
         average_steering = temp_sum_steering / 3.0
-
-        current_label = [average_steering]
 
         if self.transforms:
             image_np = self.transforms(image_np)
@@ -234,7 +232,7 @@ class NeuralNet(nn.Module):
         return num_features
 
 
-def train_model(model, dataloaders, criterion, optimizer, scheduler, device, output_dir, num_epochs=25):
+def train_model(model, dataloaders, criterion, optimizer, device, output_dir, scheduler=None, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -277,8 +275,8 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 # statistics
                 running_loss += loss.item() * inputs.size(0)
 
-            # if phase == 'train':
-            #     scheduler.step()
+            if phase == 'train' and (scheduler is not None):
+                scheduler.step()
 
             epoch_loss = running_loss / (inputs.size(0) * (i+1))
 
@@ -346,4 +344,4 @@ if __name__ == "__main__":
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
     model = train_model(model, dataloaders, criterion, optimizer,
-                        exp_lr_scheduler, device, MODEL_OUTPUT_DIR, num_epochs=500)
+                        device, MODEL_OUTPUT_DIR, exp_lr_scheduler, num_epochs=500)
