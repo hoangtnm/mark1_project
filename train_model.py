@@ -187,7 +187,7 @@ class AirSimDataset(Dataset):
         if self.transforms:
             image_np = self.transforms(image_np)
 
-        return image_np, torch.tensor(temp_sum_steering, dtype=torch.float32)
+        return image_np, torch.tensor(average_steering, dtype=torch.float32)
 
 
 class NeuralNet(nn.Module):
