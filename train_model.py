@@ -40,9 +40,9 @@ MAX_SPEED = 8
 
 
 # Hyper-parameters
-batch_size = 32
-learning_rate = 0.0001
-number_of_epochs = 500
+BATCH_SIZE = 32
+LEARNING_RATE = 1e-3
+NUM_EPOCHS = 500
 
 # Activation functions
 activation = 'relu'
@@ -67,9 +67,9 @@ num_eval_examples = eval_dataset['image'].shape[0]
 data_generator = DriveDataGenerator(rescale=1. / 255.,
                                     horizontal_flip=False,
                                     brighten_range=0.4)
-train_generator = data_generator.flow(train_dataset['image'], train_dataset['previous_state'], train_dataset['label'], batch_size=batch_size,
+train_generator = data_generator.flow(train_dataset['image'], train_dataset['previous_state'], train_dataset['label'], batch_size=BATCH_SIZE,
                                       zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
-eval_generator = data_generator.flow(eval_dataset['image'], eval_dataset['previous_state'], eval_dataset['label'], batch_size=batch_size,
+eval_generator = data_generator.flow(eval_dataset['image'], eval_dataset['previous_state'], eval_dataset['label'], batch_size=BATCH_SIZE,
                                      zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
 
 [sample_batch_train_data, sample_batch_test_data] = next(train_generator)
@@ -104,7 +104,7 @@ img_stack = Dense(10, name="fc4", activation=activation,
 img_stack = Dense(1, name="output", activation=out_activation,
                   kernel_initializer="he_normal")(img_stack)
 
-adam = Adam(lr=learning_rate, beta_1=0.9,
+adam = Adam(lr=LEARNING_RATE, beta_1=0.9,
             beta_2=0.999, epsilon=1e-08, decay=0.0)
 
 model = Model(inputs=[pic_input], outputs=img_stack)
@@ -113,7 +113,7 @@ model.compile(optimizer=adam, loss='mse')
 model.summary()
 
 plateau_callback = ReduceLROnPlateau(
-    monitor="val_loss", factor=0.5, patience=3, min_lr=learning_rate, verbose=1)
+    monitor="val_loss", factor=0.5, patience=3, min_lr=LEARNING_RATE, verbose=1)
 csv_callback = CSVLogger(os.path.join(MODEL_OUTPUT_DIR, 'training_log.csv'))
 checkpoint_filepath = os.path.join(MODEL_OUTPUT_DIR, 'fresh_models',
                                    '{0}_model.{1}-{2}.h5'.format('model', '{epoch:02d}', '{val_loss:.7f}'))
@@ -124,9 +124,9 @@ early_stopping_callback = EarlyStopping(
 callbacks = [plateau_callback, csv_callback, checkpoint_callback,
              early_stopping_callback, TQDMNotebookCallback()]
 
-history = model.fit_generator(train_generator, steps_per_epoch=num_train_examples // batch_size,
-                              epochs=number_of_epochs, callbacks=callbacks,
-                              validation_data=eval_generator, validation_steps=num_eval_examples // batch_size,
+history = model.fit_generator(train_generator, steps_per_epoch=num_train_examples // BATCH_SIZE,
+                              NUM_epochs=EPOCHS, callbacks=callbacks,
+                              validation_data=eval_generator, validation_steps=num_eval_examples // BATCH_SIZE,
                               verbose=2)
 
 
@@ -232,7 +232,7 @@ class NeuralNet(nn.Module):
         return num_features
 
 
-def train_model(model, dataloaders, criterion, optimizer, device, output_dir, scheduler=None, num_epochs=25):
+def train_model(model, dataloaders, criterion, optimizer, device, output_dir, scheduler=None, skip_val=False, num_epochs=25):
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -245,9 +245,11 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
         # Each epoch has a training and validation phase
         for phase in ['train', 'val']:
             if phase == 'train':
-                model.train()  # Set model to training mode
+                model.train()   # Set model to training mode
+            elif skip_val:      # Skip validation
+                break
             else:
-                model.eval()   # Set model to evaluate mode
+                model.eval()    # Set model to evaluate mode
 
             running_loss = 0.0
 
@@ -289,7 +291,8 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
                 torch.save(best_model_wts, output_dir)
 
     time_elapsed = time.time() - since
-    print(f'Training completed in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print(f'Training completed in \
+          {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -325,9 +328,9 @@ if __name__ == "__main__":
 
     # dataloaders
     dataloaders = {
-        'train': torch.utils.data.DataLoader(trainset, batch_size=32,
+        'train': torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
                                              shuffle=True, num_workers=4),
-        'val': torch.utils.data.DataLoader(trainset, batch_size=32,
+        'val': torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
                                            shuffle=False, num_workers=4)
     }
 
@@ -337,11 +340,12 @@ if __name__ == "__main__":
     print(model)
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=LEARNING_RATE)
     # optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
     model = train_model(model, dataloaders, criterion, optimizer,
-                        device, MODEL_OUTPUT_DIR, exp_lr_scheduler, num_epochs=500)
+                        device, MODEL_OUTPUT_DIR, exp_lr_scheduler,
+                        skip_val=True, num_epochs=NUM_EPOCHS)
