@@ -339,7 +339,7 @@ if __name__ == "__main__":
     print(model)
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(net.parameters(), lr=1e-3)
+    optimizer = optim.Adam(model.parameters(), lr=1e-3)
     # optimizer = optim.SGD(model.parameters(), lr=1e-3, momentum=0.9)
 
     # Decay LR by a factor of 0.1 every 7 epochs
