@@ -304,7 +304,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
 
 if __name__ == "__main__":
     # TensorBoard setup
-    writer = SummaryWriter('logs/mark1_experiment')
+    writer = SummaryWriter('runs')
 
     # check if CUDA is available
     train_on_gpu = torch.cuda.is_available()
@@ -344,6 +344,8 @@ if __name__ == "__main__":
     model = NeuralNet()
     dataiter = iter(dataloaders['train'])
     images, labels = dataiter.next()
+    grid = torchvision.utils.make_grid(images)
+    writer.add_image('images', grid, 0)
     writer.add_graph(model, images)
     model.to(device)
     print(model)
