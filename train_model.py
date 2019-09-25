@@ -288,7 +288,8 @@ def train_model(model, dataloaders, criterion, optimizer, device, output_dir, sc
             if phase == 'val' and epoch_loss < best_loss:
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
-                torch.save(best_model_wts, output_dir)
+                torch.save(best_model_wts, os.path.join(
+                    output_dir, 'checkpoint.pth'))
 
     time_elapsed = time.time() - since
     print(f'Training completed in \
