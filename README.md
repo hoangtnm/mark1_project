@@ -20,7 +20,7 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 
 ## 1. Prerequisites
 
-- Operating system: Windows 10
+- Operating system: Windows 10 or Ubuntu 18.04 LTS
 - GPU: Nvidia GTX 1080 or higher (recommended)
 - Software: [Unreal Engine 4.18](https://www.unrealengine.com) and [Visual Studio 2017](https://my.visualstudio.com/Downloads?q=Visual%20Studio%202017) (see [upgrade instructions](https://github.com/Microsoft/AirSim/blob/master/docs/unreal_upgrade.md))
 - Simulator: [AirSim 1.2](https://github.com/microsoft/AirSim/releases/tag/v1.2.0)
@@ -35,7 +35,7 @@ The environment scene is provided by [PolyPixel](https://www.polypixel3d.com/).
 2. Start `x64 Native Tools Command Prompt for VS 2017`. Create a folder for the repo and run `git clone https://github.com/Microsoft/AirSim.git`.
 3. Run `build.cmd` from the command line. This will create ready to use plugin bits in the `Unreal\Plugins` folder that can be dropped into any Unreal project.
 
-### 2.3. Creating and Setting Up Unreal Environment
+### 2.3. Creating and Setting Up Unreal Environment (Windows 10)
 
 Finally, you will need an `Unreal Project` that `hosts` the `environment` for your vehicles. Follow the list below to create an environment that simulates the FSD competitions.
 
@@ -124,6 +124,10 @@ Finally, you will need an `Unreal Project` that `hosts` the `environment` for yo
 15. Be sure to `Save` these edits. Hit the Play button in the Unreal Editor. See [how to use AirSim](https://github.com/Microsoft/AirSim/#how-to-use-it).
 
 Ready... Set... GO!!! You are now running AirSim in your FSD Unreal environment.
+
+### 2.4. Creating and Setting Up Unreal Environment (Ubuntu)
+
+In case you use Ubuntu for this project, please skip steps from `2.3.9` to `2.3.11`.
 
 ## 3. How to Use It
 
