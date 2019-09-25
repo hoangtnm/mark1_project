@@ -238,7 +238,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
-    best_acc = 0.0
+    best_loss = 0.9
 
     for epoch in range(num_epochs):
         print(f'Epoch {epoch}/{num_epochs - 1}')
@@ -252,7 +252,6 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 model.eval()   # Set model to evaluate mode
 
             running_loss = 0.0
-            best_loss = 0.9
 
             # Iterate over data.
             for i, data in enumerate(dataloaders[phase]):
@@ -291,8 +290,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
                 torch.save(best_model_wts, output_dir)
 
     time_elapsed = time.time() - since
-    print(
-        f'Training complete in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
+    print(f'Training completed in {time_elapsed // 60:.0f}m {time_elapsed % 60:.0f}s')
 
     # load best model weights
     model.load_state_dict(best_model_wts)
@@ -302,7 +300,7 @@ def train_model(model, dataloaders, criterion, optimizer, scheduler, device, out
 if __name__ == "__main__":
     # check if CUDA is available
     train_on_gpu = torch.cuda.is_available()
-    device = torch.device('cpu' if train_on_gpu else 'cuda:0')
+    device = torch.device('cuda:0' if train_on_gpu else 'cpu')
     if not train_on_gpu:
         print('CUDA is not available. Training on CPU ...')
     else:
@@ -327,7 +325,7 @@ if __name__ == "__main__":
         'raw_data', '2019-09-23-16-23-27'), transforms=data_transforms['train'])
 
     # dataloaders
-    dataloader = {
+    dataloaders = {
         'train': torch.utils.data.DataLoader(trainset, batch_size=32,
                                              shuffle=True, num_workers=4),
         'val': torch.utils.data.DataLoader(trainset, batch_size=32,
@@ -345,5 +343,5 @@ if __name__ == "__main__":
     # Decay LR by a factor of 0.1 every 7 epochs
     exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
 
-    model = train_model(model, dataloader, criterion, optimizer,
-                        exp_lr_scheduler, device, MODEL_OUTPUT_DIR)
+    model = train_model(model, dataloaders, criterion, optimizer,
+                        exp_lr_scheduler, device, MODEL_OUTPUT_DIR, num_epochs=500)
