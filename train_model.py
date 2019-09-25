@@ -5,7 +5,6 @@ import torch
 import torchvision
 import numpy as np
 import pandas as pd
-from PIL import Image
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -15,6 +14,7 @@ from torch.utils.data import Dataset
 from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 from collections import OrderedDict
+from PIL import Image
 
 import tensorflow as tf
 import tensorflow.keras as keras
@@ -282,7 +282,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
 
             # epoch_loss = running_loss / total_examples
             epoch_loss = running_loss / \
-                (inputs.size(0) * len(dataloaders['train']))
+                (inputs.size(0) * len(dataloaders[phase]))
 
             print(f'{phase} Loss: {epoch_loss:.4f}')
 
