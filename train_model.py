@@ -190,7 +190,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
 
                 # statistics
                 batch_loss = loss.item()
-                running_loss += batch_loss * inputs.size(0)
+                running_loss += batch_loss
                 if phase == 'train':
                     writer.add_scalar('training_loss', batch_loss,
                                       epoch * len(dataloaders[phase]) + i)
@@ -199,9 +199,8 @@ def train_model(model, dataloaders, criterion, optimizer, device,
             if phase == 'train' and (scheduler is not None):
                 scheduler.step()
 
-            # epoch_loss = running_loss / total_examples
-            epoch_loss = running_loss / \
-                (inputs.size(0) * len(dataloaders[phase]))
+            # epoch_loss = running_loss / total_batches
+            epoch_loss = running_loss / len(dataloaders[phase])
 
             # Used for ReduceLROnPlateau scheduler
             # if phase == 'val' and (scheduler is not None):
