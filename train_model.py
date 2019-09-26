@@ -190,7 +190,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
 
                 # statistics
                 batch_loss = loss.item()
-                running_loss += batch_loss
+                running_loss += batch_loss * inputs.size(0)
                 if phase == 'train':
                     writer.add_scalar('training_loss', batch_loss,
                                       epoch * len(dataloaders[phase]) + i)
@@ -200,7 +200,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
                 scheduler.step()
 
             # epoch_loss = running_loss / total_batches
-            epoch_loss = running_loss / len(dataloaders[phase])
+            epoch_loss = running_loss / len(dataloaders[phase].dataset)
 
             # Used for ReduceLROnPlateau scheduler
             # if phase == 'val' and (scheduler is not None):
@@ -214,6 +214,9 @@ def train_model(model, dataloaders, criterion, optimizer, device,
                 best_model_wts = copy.deepcopy(model.state_dict())
                 torch.save(best_model_wts, os.path.join(
                     output_dir, 'checkpoint.pth'))
+            if phase == 'val':
+                writer.add_scalar('validation_loss', batch_loss,
+                                  epoch * len(dataloaders[phase]) + i)
 
     time_elapsed = time.time() - since
     print(f'Training completed in \
