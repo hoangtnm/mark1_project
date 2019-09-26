@@ -275,8 +275,9 @@ def train_model(model, dataloaders, criterion, optimizer, device,
                 running_loss += batch_loss * inputs.size(0)
                 if phase == 'train':
                     writer.add_scalar('training_loss', batch_loss,
-                                      epoch * len(dataloaders['train']) + i)
+                                      epoch * len(dataloaders[phase]) + i)
 
+            # Used for StepLR scheduler
             if phase == 'train' and (scheduler is not None):
                 scheduler.step()
 
@@ -284,7 +285,11 @@ def train_model(model, dataloaders, criterion, optimizer, device,
             epoch_loss = running_loss / \
                 (inputs.size(0) * len(dataloaders[phase]))
 
-            print(f'{phase} Loss: {epoch_loss:.4f}')
+            # Used for ReduceLROnPlateau scheduler
+            # if phase == 'val' and (scheduler is not None):
+            #     scheduler.step(epoch_loss)
+
+            print(f'{phase} Loss: {epoch_loss:.4f} Accuracy: {100*(1-epoch_loss)}%')
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
@@ -328,25 +333,22 @@ if __name__ == "__main__":
         ]),
     }
 
-    # datasets
-    trainset = AirSimDataset(os.path.join(
-        'raw_data', '2019_09_24'), transforms=data_transforms['train'])
-
-    # dataloaders
-    dataloaders = {
-        'train': torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
-                                             shuffle=True, num_workers=4),
-        'val': torch.utils.data.DataLoader(trainset, batch_size=BATCH_SIZE,
-                                           shuffle=False, num_workers=4)
-    }
+    data_dir = os.path.join('raw_data', '2019_09_24')
+    image_datasets = {x: AirSimDataset(os.path.join(data_dir, x),
+                                       transforms=data_transforms[x])
+                      for x in ['train', 'val']}
+    dataloaders = {x: DataLoader(image_datasets[x], batch_size=BATCH_SIZE,
+                                 shuffle=True, num_workers=4)
+                   for x in ['train', 'val']}
+    dataset_sizes = {x: len(image_datasets[x]) for x in ['train', 'val']}
 
     # initializes a neural network for training
     model = NeuralNet()
-    dataiter = iter(dataloaders['train'])
-    images, labels = dataiter.next()
-    grid = torchvision.utils.make_grid(images)
-    writer.add_image('images', grid, 0)
-    writer.add_graph(model, images)
+    # dataiter = iter(dataloaders['train'])
+    # images, labels = dataiter.next()
+    # grid = torchvision.utils.make_grid(images)
+    # writer.add_image('images', grid, 0)
+    # writer.add_graph(model, images)
     model.to(device)
     print(model)
 
@@ -356,6 +358,8 @@ if __name__ == "__main__":
 
     # Decay LR by a factor of 0.1 every 7 epochs
     # exp_lr_scheduler = lr_scheduler.StepLR(optimizer, step_size=7, gamma=0.1)
+    # lr_scheduler = lr_scheduler.ReduceLROnPlateau(
+    #     optimizer, factor=0.5, patience=3, min_lr=0, verbose=True)
 
     model = train_model(model, dataloaders, criterion, optimizer, device,
                         MODEL_OUTPUT_DIR, writer, num_epochs=NUM_EPOCHS)
