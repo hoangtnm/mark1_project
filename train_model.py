@@ -215,8 +215,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
                 torch.save(best_model_wts, os.path.join(
                     output_dir, 'checkpoint.pth'))
             if phase == 'val':
-                writer.add_scalar('validation_loss', batch_loss,
-                                  epoch * len(dataloaders[phase]) + i)
+                writer.add_scalar('validation_loss', batch_loss, epoch)
 
     time_elapsed = time.time() - since
     print(f'Training completed in \
