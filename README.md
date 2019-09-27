@@ -195,6 +195,15 @@ I recommend on using augmentation and recording techniques:
 ## Citing
 
 ```
+@inproceedings{airsim2017fsr,
+  author = {Shital Shah and Debadeepta Dey and Chris Lovett and Ashish Kapoor},
+  title = {AirSim: High-Fidelity Visual and Physical Simulation for Autonomous Vehicles},
+  year = {2017},
+  booktitle = {Field and Service Robotics},
+  eprint = {arXiv:1705.05065},
+  url = {https://arxiv.org/abs/1705.05065}
+}
+
 @article{zadok2019explorations,
   title={Explorations and Lessons Learned in Building an Autonomous Formula SAE Car from Simulations},
   author={Zadok, Dean and Hirshberg, Tom and Biran, Amir and Radinsky, Kira and Kapoor, Ashish},
@@ -205,4 +214,8 @@ I recommend on using augmentation and recording techniques:
 
 ## References
 
+[Explorations and Lessons Learned in Building an Autonomous Formula SAE Car from Simulations](https://arxiv.org/abs/1905.05940)
+
 [Build AirSim with FST Driverless Environment on Windows](https://github.com/Microsoft/AirSim/wiki/build_FSTDriverless_windows#install-unreal-engine)
+
+[Formula Student Technion Driverless - Implementation](https://github.com/FSTDriverless/FSTImplementation)
