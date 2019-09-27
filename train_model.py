@@ -26,23 +26,23 @@ BATCH_SIZE = 32
 LEARNING_RATE = 1e-3
 NUM_EPOCHS = 500
 
-# << The directory containing the cooked data from the previous step >>
-COOKED_DATA_DIR = './cooked_data/'
+# # << The directory containing the cooked data from the previous step >>
+# COOKED_DATA_DIR = './cooked_data/'
 
 # << The directory in which the model output will be placed >>
 MODEL_OUTPUT_DIR = './models/'
 
-train_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'train.h5'), 'r')
-eval_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'eval.h5'), 'r')
+# train_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'train.h5'), 'r')
+# eval_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'eval.h5'), 'r')
 
-# Use ROI of [78,144,27,227] for FOV 60 with Formula car
-data_generator = DriveDataGenerator(rescale=1. / 255.,
-                                    horizontal_flip=False,
-                                    brighten_range=0.4)
-train_generator = data_generator.flow(train_dataset['image'], train_dataset['previous_state'], train_dataset['label'], batch_size=BATCH_SIZE,
-                                      zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
-eval_generator = data_generator.flow(eval_dataset['image'], eval_dataset['previous_state'], eval_dataset['label'], batch_size=BATCH_SIZE,
-                                     zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
+# # Use ROI of [78,144,27,227] for FOV 60 with Formula car
+# data_generator = DriveDataGenerator(rescale=1. / 255.,
+#                                     horizontal_flip=False,
+#                                     brighten_range=0.4)
+# train_generator = data_generator.flow(train_dataset['image'], train_dataset['previous_state'], train_dataset['label'], batch_size=BATCH_SIZE,
+#                                       zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
+# eval_generator = data_generator.flow(eval_dataset['image'], eval_dataset['previous_state'], eval_dataset['label'], batch_size=BATCH_SIZE,
+#                                      zero_drop_percentage=0.95, roi=[78, 144, 27, 227])
 
 
 class AirSimDataset(Dataset):
