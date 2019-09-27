@@ -206,7 +206,7 @@ def train_model(model, dataloaders, criterion, optimizer, device,
             # if phase == 'val' and (scheduler is not None):
             #     scheduler.step(epoch_loss)
 
-            print(f'{phase} Loss: {epoch_loss:.4f} Accuracy: {100*(1-epoch_loss)}%')
+            print(f'{phase} Loss: {epoch_loss:.4f} Accuracy: {round(100*(1-epoch_loss), 8)}%')
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
