@@ -1,18 +1,20 @@
-from train_model import NeuralNet
-import matplotlib.pyplot as plt
-from PIL import Image, ImageDraw
+import os
+import tensorflow as tf
+import tensorflow.keras as keras
 from keras.preprocessing import image
-import keras.backend as K
+import tensorflow.keras.backend as K
 import torchvision.transforms as transforms
 import torch
+import torchvision
+import torchvision.transforms as transforms
 import airsim
 import numpy as np
 import time
 import sys
 from keras.models import load_model
-import tensorflow as tf
-import os
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+from PIL import Image
+
+from train_model import NeuralNet
 
 
 # Trained model path
@@ -42,7 +44,7 @@ def get_image():
         [airsim.ImageRequest("0", airsim.ImageType.Scene, False, False)])[0]
     img1d = np.fromstring(image_response.image_data_uint8, dtype=np.uint8)
     image_rgb = img1d.reshape(image_response.height, image_response.width, 3)
-    return image_rgb.astype(np.float32)
+    return image_rgb
 
 
 while True:
@@ -114,6 +116,8 @@ if __name__ == "__main__":
                 car_controls.throttle = 0.4
 
             image = get_image()
+            image = Image.fromarray(image)
+            image = data_transforms(image).unsqueeze_(0)
             image.to(device)
 
             start_time = time.time()
