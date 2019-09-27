@@ -173,27 +173,13 @@ Imitation learning includes the usage of labeled data as input to a training alg
 	Figure 10. Imiation Learning diagram
 </p>
 
-### 4.1. Preparing training dataset
+### 4.1. Training
 
-`cook_data.py` is responsible for preparing `.h5` dataset files for the training procedure.
-
-The code rely on having two adjacent folders:
-`raw_data` - contains folders of recorded data by airsim's recording method.
-`cooked_data` - empty folder to store the .h5 files.
-
-The flag "COOK_ALL_DATA" gives the option to choose all subfolders, or exclude some of them.
-
-### 4.2. Training
-
-`train_model.py` is responsible to train a model using the .h5 dataset files.
-The code rely on having two adjacent folders:
-
-`cooked_data` - contains the .h5 dataset files.
-`models` - empty folder to store the generated models.
+`train_model.py` is responsible to train a model using the [AirSim's Recording](https://github.com/microsoft/AirSim/blob/master/docs/settings.md#recording) log.
 
 The file will preprocess the data, add augmentations and create a neural network model that predicts the next steering angle.
 
-### 4.3. Driving using a trained model
+### 4.2. Driving using a trained model
 
 `drive_model.py` connects to the simulation in order to upload a trained model and drive using it.
 
