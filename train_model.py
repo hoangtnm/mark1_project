@@ -17,7 +17,6 @@ from collections import OrderedDict
 from PIL import Image
 
 
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
 MAX_SPEED = 8
 
 
