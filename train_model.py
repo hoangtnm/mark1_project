@@ -28,8 +28,10 @@ NUM_EPOCHS = 500
 # # << The directory containing the cooked data from the previous step >>
 # COOKED_DATA_DIR = './cooked_data/'
 
-# << The directory in which the model output will be placed >>
+# Checkpoint information
 MODEL_OUTPUT_DIR = './models/'
+CHECKPOINT_NAME = 'checkpoint.pth'
+CHECKPOINT_PATH = os.path.join(MODEL_OUTPUT_DIR, CHECKPOINT_NAME)
 
 # train_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'train.h5'), 'r')
 # eval_dataset = h5py.File(os.path.join(COOKED_DATA_DIR, 'eval.h5'), 'r')
@@ -147,7 +149,27 @@ class NeuralNet(nn.Module):
 
 
 def train_model(model, dataloaders, criterion, optimizer, device,
-                output_dir, writer=None, scheduler=None, num_epochs=25):
+                checkpoint_path, writer=None, scheduler=None, num_epochs=25):
+    # Creates directory for saving checkpoint if needed
+    if not os.path.exists(os.path.dirname(checkpoint_path)):
+        os.makedirs(os.path.dirname(checkpoint_path))
+    
+    # Resumes Training
+    if os.path.exists(checkpoint_path):
+        checkpoint = torch.load(checkpoint_path)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+    
+    # Print model's state_dict
+    print("Model's state_dict:")
+    for param_tensor in model.state_dict():
+        print(param_tensor, "\t", model.state_dict()[param_tensor].size())
+
+    # Print optimizer's state_dict
+    print("Optimizer's state_dict:")
+    for var_name in optimizer.state_dict():
+        print(var_name, "\t", optimizer.state_dict()[var_name])
+
     since = time.time()
 
     best_model_wts = copy.deepcopy(model.state_dict())
@@ -205,14 +227,16 @@ def train_model(model, dataloaders, criterion, optimizer, device,
             # if phase == 'val' and (scheduler is not None):
             #     scheduler.step(epoch_loss)
 
-            print(f'{phase} Loss: {epoch_loss:.4f} Accuracy: {round(100*(1-epoch_loss), 8)}%')
+            print(f'{phase} Loss: {epoch_loss:.4f} Accuracy: {round(100*(1-epoch_loss), 5)}%')
 
             # deep copy the model
             if phase == 'val' and epoch_loss < best_loss:
                 best_loss = epoch_loss
                 best_model_wts = copy.deepcopy(model.state_dict())
-                torch.save(best_model_wts, os.path.join(
-                    output_dir, 'checkpoint.pth'))
+                torch.save({
+                    'model_state_dict': best_model_wts,
+                    'optimizer_state_dict': optimizer.state_dict(),
+                }, checkpoint_path)
             if phase == 'val':
                 writer.add_scalar('validation_loss', batch_loss, epoch)
 
@@ -280,5 +304,5 @@ if __name__ == "__main__":
     #     optimizer, factor=0.5, patience=3, min_lr=0, verbose=True)
 
     model = train_model(model, dataloaders, criterion, optimizer, device,
-                        MODEL_OUTPUT_DIR, writer, num_epochs=NUM_EPOCHS)
+                        CHECKPOINT_PATH, writer, num_epochs=NUM_EPOCHS)
     writer.close()
