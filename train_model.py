@@ -159,6 +159,9 @@ def train_model(model, dataloaders, criterion, optimizer, device,
         checkpoint = torch.load(checkpoint_path)
         model.load_state_dict(checkpoint['model_state_dict'])
         optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
+
+    # Model allocation
+    model.to(device)
     
     # Print model's state_dict
     print("Model's state_dict:")
@@ -291,7 +294,6 @@ if __name__ == "__main__":
     # grid = torchvision.utils.make_grid(images)
     # writer.add_image('images', grid, 0)
     # writer.add_graph(model, images)
-    model.to(device)
     print(model)
 
     criterion = nn.MSELoss()
