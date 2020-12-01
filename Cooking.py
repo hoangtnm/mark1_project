@@ -27,7 +27,7 @@ def create_dir(full_path):
 
 
 def read_images_from_path(image_names):
-    """Returns a list of all loaded images after resize.
+    """Returns a list of all loaded images after resizing.
 
     Args:
         image_names: list of image names
@@ -64,7 +64,6 @@ def split_train_val_test_data(all_data_mappings, split_ratio=(0.7, 0.2, 0.1)):
         train_data_mappings: mappings for training data
         validation_data_mappings: mappings for validation data
         test_data_mappings: mappings for test data
-
     """
     if round(sum(split_ratio), 5) != 1.0:
         print("Error: Your splitting ratio should add up to 1")
@@ -87,11 +86,10 @@ def generateDataMapAirSim(folders):
 
     Args:
         folders: list of folders to collect data from
-
     Returns:
         mappings: All data mappings as a dictionary. Key is the image filepath, the values are a 2-tuple:
-            0 -> label(s) as a list of double
-            1 -> previous state as a list of double
+            0 -> label(s) as a list of float
+            1 -> previous state as a list of float
     """
 
     all_mappings = {}
@@ -100,28 +98,27 @@ def generateDataMapAirSim(folders):
         current_df = pd.read_csv(os.path.join(
             folder, 'airsim_rec.txt'), sep='\t')
 
-        for i in range(1, current_df.shape[0] - 1):
+        for row in range(1, current_df.shape[0] - 1):
 
             # Consider only training examples without breaks
-            if current_df.iloc[i-1]['Brake'] != 0:
+            if current_df.iloc[row-1]['Brake'] != 0:
                 continue
 
             # Normalize steering: between 0 and 1
             norm_steering = [
-                (float(current_df.iloc[i-1][['Steering']]) + 1) / 2.0]
-            norm_throttle = [float(current_df.iloc[i-1][['Throttle']])]
+                (float(current_df.iloc[row-1][['Steering']]) + 1) / 2.0]
+            norm_throttle = [float(current_df.iloc[row-1][['Throttle']])]
             # Normalize speed: between 0 and 1
             norm_speed = [
-                float(current_df.iloc[i-1][['Speed (kmph)']]) / MAX_SPEED]
+                float(current_df.iloc[row-1][['Speed']]) / MAX_SPEED]
 
             previous_state = norm_steering + norm_throttle + norm_speed   # Append lists
 
             # compute average steering over 3 consecutive recorded images, this will serve as the label
-
             norm_steering0 = (
-                float(current_df.iloc[i][['Steering']]) + 1) / 2.0
+                float(current_df.iloc[row][['Steering']]) + 1) / 2.0
             norm_steering1 = (
-                float(current_df.iloc[i+1][['Steering']]) + 1) / 2.0
+                float(current_df.iloc[row+1][['Steering']]) + 1) / 2.0
 
             temp_sum_steering = norm_steering[0] + \
                 norm_steering0 + norm_steering1
@@ -130,16 +127,14 @@ def generateDataMapAirSim(folders):
             current_label = [average_steering]
 
             image_filepath = os.path.join(os.path.join(
-                folder, 'images'), current_df.iloc[i]['ImageName']).replace('\\', '/')
+                folder, 'images'), current_df.iloc[row]['ImageFile']).replace('\\', '/')
 
-            if (image_filepath in all_mappings):
-                print('Error: attempting to add image {0} twice.'.format(
-                    image_filepath))
+            if image_filepath in all_mappings:
+                print(f'Error: attempting to add image {image_filepath} twice.')
 
             all_mappings[image_filepath] = (current_label, previous_state)
 
     mappings = [(key, all_mappings[key]) for key in all_mappings]
-
     random.shuffle(mappings)
 
     return mappings
@@ -221,8 +216,7 @@ def cook(folders, output_directory, train_eval_test_split, chunk_size):
     output_files = [os.path.join(output_directory, f)
                     for f in ['train.h5', 'eval.h5', 'test.h5']]
     if (any([os.path.isfile(f) for f in output_files])):
-        print("Preprocessed data already exists at: {0}. Skipping preprocessing.".format(
-            output_directory))
+        print(f'Preprocessed data already exists at: {output_directory}. Skipping preprocessing.')
 
     else:
         all_data_mappings = generateDataMapAirSim(folders)
@@ -231,6 +225,6 @@ def cook(folders, output_directory, train_eval_test_split, chunk_size):
             all_data_mappings, split_ratio=train_eval_test_split)
 
         for i in range(0, len(split_mappings)-1, 1):
-            print('Processing {0}...'.format(output_files[i]))
+            print(f'Processing {output_files[i]}...')
             saveH5pyData(split_mappings[i], output_files[i], chunk_size)
-            print('Finished saving {0}.'.format(output_files[i]))
+            print(f'Finished saving {output_files[i]}.')
